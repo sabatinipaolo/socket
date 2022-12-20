@@ -5,11 +5,17 @@ class TCPServer {
  public static void main(String argv[]) throws Exception {
   System.out.println("Hello I'm SERVER");
 
-  ServerSocket welcomeSocket = new ServerSocket(6789);
+  ServerSocket serverSocket = new ServerSocket(6789);
 
   while (true) {
-   Socket connectionSocket = welcomeSocket.accept();
-   System.out.println("I have a connection !!");
+   Socket connectionSocket = serverSocket.accept();
+   System.out.println("oh! Ho una connessione!!");
+   
+   Tool.pressEnterKeyToContinue("s1 ) premi enter chiudere la connessione con il client ");
+   
+   connectionSocket.close();
+   System.out.println("I had close thid connection!! ");
+   
   }
  }
 }
