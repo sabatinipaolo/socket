@@ -14,7 +14,7 @@ class TCPServer {
    Tool.pressEnterKeyToContinue("s1 ) premi enter chiudere la connessione con il client ");
    
    connectionSocket.close();
-   System.out.println("I had close thid connection!! ");
+   System.out.println("Ho chiuso la connessione !! ");
    
   }
  }
