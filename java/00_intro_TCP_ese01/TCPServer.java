@@ -12,8 +12,9 @@ class TCPServer {
    System.out.println("oh! Ho una connessione!!");
 
    DataInputStream dis=new DataInputStream(connectionSocket.getInputStream());  
-   String  str=(String)dis.readUTF();  
-   System.out.println("message= "+str);  
+   String  str=(String)dis.readUTF();
+     
+   System.out.println(connectionSocket.getInetAddress().toString()+ ":" + connectionSocket.getPort() + " message= "+str);  
    
    Tool.pressEnterKeyToContinue("s1 ) premi enter chiudere la connessione con il client ");
    
