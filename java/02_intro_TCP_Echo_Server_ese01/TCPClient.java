@@ -15,9 +15,10 @@ class TCPClient {
 
   Tool.pressEnterKeyToContinue("c2 ) premi enter per inviare \"ciao mondo!!\" al server");
 
-  String messaggio="ciao mondo!!";
+  String messaggio="ciao mondo!!\n";
   DataOutputStream dout = new DataOutputStream( clientSocket.getOutputStream());
   dout.writeUTF(messaggio);
+  dout.flush();
 
   Tool.pressEnterKeyToContinue("c3 ) premi enter chiudere la connessione ");
   clientSocket.close();
