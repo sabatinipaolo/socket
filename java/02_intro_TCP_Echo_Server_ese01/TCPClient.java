@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.util.Scanner;
 
 
 class TCPClient {
@@ -8,19 +9,36 @@ class TCPClient {
 
   String serverAddres = "127.0.0.1" ; 
 
-  Tool.pressEnterKeyToContinue("c1 ) premi enter per creare un socket connesso al server");
+  //Tool.pressEnterKeyToContinue("c1 ) premi enter per creare un socket connesso al server");
 
   Socket clientSocket = new Socket(serverAddres, 6789);
+  
+  BufferedReader dis = new BufferedReader (
+                            new InputStreamReader(
+                                    clientSocket.getInputStream()));
 
+  DataOutputStream dout = new DataOutputStream( 
+                                    clientSocket.getOutputStream());
+                                    
 
-  Tool.pressEnterKeyToContinue("c2 ) premi enter per inviare \"ciao mondo!!\" al server");
+  Scanner scanner = new Scanner(System.in);
 
-  String messaggio="ciao mondo!!\n";
-  DataOutputStream dout = new DataOutputStream( clientSocket.getOutputStream());
-  dout.writeUTF(messaggio);
-  dout.flush();
+  String messaggio,messaggioDalServer;
+ 
+  while ( ! (messaggio =scanner.nextLine()).isEmpty() ){ 
+    //traduco : mentre ( la stringa letta non è vuota ,,)
+   
+    dout.writeUTF(messaggio+"\n"); //TODO : usare print stream ...
+    dout.flush();
 
-  Tool.pressEnterKeyToContinue("c3 ) premi enter chiudere la connessione ");
+    messaggioDalServer=dis.readLine();
+    System.out.println("echo: " + messaggioDalServer);
+
+    
+    if (messaggio.equals("@server bye")) break;
+
+  }
+  
   clientSocket.close();
 
  }

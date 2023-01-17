@@ -53,7 +53,7 @@ class connectionConUnClient extends Thread{
 
         if ( stringaDalClient=="@server bye" ) break;
 
-        String s = "il server dice : ho ricevuto" + stringaDalClient;
+        String s = "il server dice : ho ricevuto" + stringaDalClient+"\n";
         dout.writeUTF(s);
         dout.flush();
       }
@@ -62,8 +62,7 @@ class connectionConUnClient extends Thread{
       System.out.println("Ho chiuso la connessione !! con "+connectionSocket.getInetAddress().toString()+ ":" + connectionSocket.getPort() ) ;
 
      } catch (IOException ex) {
-            System.out.println("Server exception: " + ex.getMessage());
-            ex.printStackTrace();
+
      }
   }
 
