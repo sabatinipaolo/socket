@@ -36,16 +36,15 @@ class connectionConUnClient extends Thread{
       // in quanto il metodo readline di DataInputStream è deprecato ...
       // vedi https://docs.oracle.com/en/java/javase/19/docs/api/java.base/java/io/DataInputStream.html#readLine()
 
-      BufferedReader dis = new BufferedReader (
+      BufferedReader bins = new BufferedReader (
                               new InputStreamReader(
                                   connectionSocket.getInputStream()));
-      DataOutputStream dout=new DataOutputStream(
+      PrintWriter pouts=new PrintWriter(
                                   connectionSocket.getOutputStream());
 
       String  stringaDalClient;
 
-
-      while ( (stringaDalClient = dis.readLine()) != null ){
+      while ( (stringaDalClient = bins.readLine()) != null ){
         
         System.out.println( connectionSocket.getInetAddress().toString()
                             + ":" + connectionSocket.getPort()
@@ -53,9 +52,9 @@ class connectionConUnClient extends Thread{
 
         if ( stringaDalClient=="@server bye" ) break;
 
-        String s = "il server dice : ho ricevuto" + stringaDalClient+"\n";
-        dout.writeUTF(s);
-        dout.flush();
+        String s = "il server dice, ho ricevuto " + stringaDalClient+"\n";
+        pouts.write(s);
+        pouts.flush();
       }
 
       connectionSocket.close();
