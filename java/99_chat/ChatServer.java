@@ -14,6 +14,8 @@ public static void main(String argv[]) throws Exception {
      new Collegamento(connectionSocket).start(); 
     }
   }
+
+void analizza  
 }
 
 class Collegamento extends Thread {
@@ -30,6 +32,14 @@ class Collegamento extends Thread {
     this.socket = s;
     this.fromIP = s.getInetAddress().toString();
     this.fromPort = s.getPort();
+    try {
+      this.bufferIn = new BufferedReader (
+                         new InputStreamReader(
+                               socket.getInputStream()));
+      this.printOut = new PrintWriter(
+                               socket.getOutputStream());
+     } catch (IOException ex) {  };
+
 
   }
 
@@ -37,11 +47,6 @@ class Collegamento extends Thread {
 
     String  stringaDalClient;
     try {
-      BufferedReader bufferIn = new BufferedReader (
-                         new InputStreamReader(
-                               socket.getInputStream()));
-      PrintWriter printOut = new PrintWriter(
-                               socket.getOutputStream());
 
       while ( (stringaDalClient = bufferIn.readLine()) != null ){
         
