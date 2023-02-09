@@ -44,9 +44,14 @@ private HashMap<String, Collegamento>  mappaCollegamenti ;
         case "@bye":
             collegamento.invia("@bye");
             collegamento.chiudo();
+            //TODO: rimuore nickname .....
             return ; 
         case "@who":
-            collegamento.invia("from server to you : lista fake per ora");
+              String elencoLogin = "";
+              for(String key: mappaCollegamenti.keySet()){
+                  elencoLogin += key + " , " ;
+              }
+              collegamento.invia("from server to you : "+ elencoLogin);
             break;  
         case "@login":
             //TODO: inserire controlli più raffinati
