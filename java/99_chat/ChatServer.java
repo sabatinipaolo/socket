@@ -41,14 +41,15 @@ private HashMap<String, Collegamento>  mappaCollegamenti ;
           restoStringa = splittata[1];
           
       switch(comando ){  
-        case "@bye":  
+        case "@bye":
+            collegamento.invia("@bye");
             collegamento.chiudo();
             return ; 
         case "@who":
             collegamento.invia("from server to you : lista fake per ora");
             break;  
         case "@login":
-            //TODO: inserire controlli
+            //TODO: inserire controlli più raffinati
                  if ( collegamento.isLoggato() ) {
                       collegamento.invia("from server to you : sei già loggato");
                       return;
@@ -84,8 +85,7 @@ private HashMap<String, Collegamento>  mappaCollegamenti ;
       
     }
 
-    
-     
+
 }
 
 class Collegamento extends Thread {
@@ -100,9 +100,8 @@ class Collegamento extends Thread {
   private boolean sonoChiuso ;
   private boolean isLoggato;
   private String nickName;
-  
 
-  
+
   Collegamento( ChatServer server , Socket s ){
     this.isLoggato=false;
     this.nickName="";
@@ -118,7 +117,7 @@ class Collegamento extends Thread {
       this.printOut = new PrintWriter(
                                socket.getOutputStream());
      } catch (IOException ex) {  };
-
+     System.out.println( "Connessione da " +fromIP + ":" +fromPort );
 
   }
 
