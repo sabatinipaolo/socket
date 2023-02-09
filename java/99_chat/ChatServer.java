@@ -35,7 +35,7 @@ private HashMap<String, Collegamento>  mappaCollegamenti ;
       
       
       String restoStringa ;
-      if ( splittata.length == 1 )
+      if ( splittata.length == 1 )  //TODO: controllare 
           restoStringa ="";
       else
           restoStringa = splittata[1];
@@ -61,7 +61,7 @@ private HashMap<String, Collegamento>  mappaCollegamenti ;
             else {
                   mappaCollegamenti.put(restoStringa,collegamento);
                   collegamento.login(restoStringa);
-                  collegamento.invia("from server to you : sei loggato come"
+                  collegamento.invia("from server to you : sei loggato come "
                                 + restoStringa );
             }
             break;
@@ -70,19 +70,19 @@ private HashMap<String, Collegamento>  mappaCollegamenti ;
             break;
         default:
             //estraggo il primo carattere @ dal comando
-            //todo inserire controllo se non rimane niente ..
             // quel che rimane è un nick name ...
+            String nickName = comando.substring(1);
+            //todo inserire controllo se non rimane niente ..
             //controllo se esiste
+            
             // ottengo il collegamento dalla mappa e invio il resto...
+            if ( mappaCollegamenti.containsKey(nickName) ) {
+                mappaCollegamenti.get( nickName ).invia(
+                  "from "+nickName+ " to you : " + restoStringa );
+            }
 
+        }
 
-        }  
-
-      
-          
-      //System.out.println("resto  "+splittata[1]);
-     
-      
     }
 
 
