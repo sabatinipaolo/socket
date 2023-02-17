@@ -2,18 +2,18 @@ import java.io.*;
 import java.net.*;
 import java.util.HashMap;
 
-
 public class ChatServer{
 
-private HashMap<String, Collegamento>  mappaCollegamenti ; 
-  
+    HashMap<String, Collegamento>  mappaCollegamenti =
+                                new HashMap<String, Collegamento>();
 
-    ChatServer() throws Exception {
+    private int portaAscolto = 6789 ;
 
-        mappaCollegamenti = new HashMap<String, Collegamento>();
+    ChatServer()  throws Exception {
 
-        System.out.println("Hello I'm SERVER");
-        ServerSocket serverSocket = new ServerSocket(6789);
+        ServerSocket serverSocket = new ServerSocket(portaAscolto);
+        Logger.logga("Server partito in ascolto sulla porta : "
+                      + portaAscolto);
 
         while (true) {
            Socket connectionSocket = serverSocket.accept();
@@ -25,55 +25,161 @@ private HashMap<String, Collegamento>  mappaCollegamenti ;
        new ChatServer() ; 
       }
 
+}
 
-    void analizza(Collegamento collegamento , String stringaDaAnalizzare){
+class Logger {
 
-      if (stringaDaAnalizzare.charAt(0) != '@' ) return ;
-      
-      String[] splittata =stringaDaAnalizzare.split(" ", 2);
-      String comando = splittata[0];
-      
-      
-      String restoStringa ;
-      if ( splittata.length == 1 )  //TODO: controllare 
-          restoStringa ="";
-      else
-          restoStringa = splittata[1];
-          
-      switch(comando ){  
-        case "@bye":
-            collegamento.invia("@bye");
-            collegamento.chiudo();
+  static void logga(String stringa){
+      System.out.println(stringa); //TODO inserire timestamp
+    }
+}
+
+class Collegamento extends Thread {
+
+    ChatServer chatServer;
+    private Socket socket ;
+    private BufferedReader bufferIn ;
+    private PrintWriter printOut ;
+    private boolean sonoChiuso = false ;
+    private boolean isLoggato = false;
+    private String nickName ="";
+
+
+    Collegamento( ChatServer chatServer , Socket socket ){
+
+        this.chatServer = chatServer;
+        this.socket = socket;
+        try {
+            this.bufferIn = new BufferedReader (
+                              new InputStreamReader(
+                               socket.getInputStream()));
+            this.printOut = new PrintWriter(
+                               socket.getOutputStream());
+        } catch (IOException ex) {  };
+        Logger.logga( "Connessione da " + toStringa() );
+    }
+
+    public void run(){  
+
+        String  stringaDalClient="";
+        while ( nonSonoChiuso()){
+            try {
+                  stringaDalClient = bufferIn.readLine();
+            } catch (IOException ex) {  };
+            
+            Logger.logga( "Messaggio da " + toStringa()
+                                      + stringaDalClient );
+                              
+            GestoreProtocollo.analizza(this , stringaDalClient);
+            if ( sonoChiuso ) break;
+        };
+
+
+    }
+
+    String toStringa(){
+        return (socket.getInetAddress().toString()
+                + ":" + socket.getPort() );
+    }
+
+    void invia (String messaggio){
+
+        printOut.write(messaggio+"\n");
+        printOut.flush();
+        Logger.logga( "invio a "+ toStringa()+" "+ messaggio) ;
+    }
+
+    boolean nonSonoChiuso(){
+        return ( !sonoChiuso );
+    }
+
+    void chiudo(){
+        try {  
+            socket.close();
+            Logger.logga("chiusa connessione " + toStringa() );
+            sonoChiuso = true;
+        } catch (IOException ex) {  };
+    }
+
+    void login ( String nickName ){
+      this.isLoggato = true;
+      this.nickName = nickName ;
+    }
+
+    boolean isLoggato() {
+        return this.isLoggato;
+    }
+}
+
+class GestoreProtocollo{
+    static void analizza(Collegamento collegamento , String stringaDaAnalizzare){
+
+        if (stringaDaAnalizzare.charAt(0) != '@' ) return ;
+            
+        String[] splittata =stringaDaAnalizzare.split(" ", 2);
+        String comando = splittata[0];
+
+        String restoStringa
+                  = ( splittata.length > 1 )  ?  splittata[1]  : "";
+              
+        switch(comando ){  
+            case "@bye":
+                esegueBye( collegamento );
+                break;
+            case "@who":
+                esegueWho( collegamento );
+                break;  
+            case "@login":
+                esegueLogin ( collegamento , restoStringa );
+                break;
+            case "@all" :
+                esegueAll( collegamento , restoStringa );
+                break;
+            default:
+                esegueAtNick ( collegamento, comando , restoStringa);
+           }
+      }
+
+    private static void esegueBye (Collegamento collegamento ){
+        collegamento.invia("@bye");
+        collegamento.chiudo();
             //TODO: rimuore nickname .....
-            return ; 
-        case "@who":
-              String elencoLogin = "";
-              for(String key: mappaCollegamenti.keySet()){
-                  elencoLogin += key + " , " ;
-              }
-              collegamento.invia("from server to you : "+ elencoLogin);
-            break;  
-        case "@login":
-            //TODO: inserire controlli più raffinati
-                 if ( collegamento.isLoggato() ) {
-                      collegamento.invia("from server to you : sei già loggato");
-                      return;
-                 }
-            else if ( mappaCollegamenti.containsKey(restoStringa) ){
-                    collegamento.invia("from server to you : nickName in uso");
-                    return;
-                 }
-            else {
-                  mappaCollegamenti.put(restoStringa,collegamento);
-                  collegamento.login(restoStringa);
+               
+      
+    }
+
+    private static void esegueWho (Collegamento collegamento ){
+       String elencoLogin = "";
+       for(String key: collegamento.chatServer.mappaCollegamenti.keySet()){
+           elencoLogin += key + " , " ;
+       }
+       collegamento.invia("from server to you : "+ elencoLogin);
+       //TODO: inserire logger.logga ...
+    }
+
+    private static void esegueLogin(Collegamento collegamento , String restoStringa ) {
+        //TODO: inserire controlli più raffinati
+        if ( collegamento.isLoggato() ) {
+                collegamento.invia("from server to you : sei già loggato");
+             }
+        else if ( collegamento.chatServer.mappaCollegamenti.containsKey(restoStringa) ){
+                collegamento.invia("from server to you : nickName in uso");
+             }
+        else {
+                  collegamento.chatServer.mappaCollegamenti.put(restoStringa,collegamento);
+                  //TODO: controllare se resto stringa è vuota 
+                  collegamento.login(restoStringa); //TODO controllare se valori multipli
                   collegamento.invia("from server to you : sei loggato come "
                                 + restoStringa );
-            }
-            break;
-        case "@all" :
-            //TODO: dispatchhare a tutti
-            break;
-        default:
+        }
+}
+
+    private static void esegueAll (Collegamento collegamento , String restoStringa){
+                  //TODO: dispatchhare a tutti
+    }
+
+    private static void esegueAtNick (Collegamento collegamento , String comando , String restoStringa){
+      
             //estraggo il primo carattere @ dal comando
             // quel che rimane è un nick name ...
             String nickName = comando.substring(1);
@@ -81,88 +187,9 @@ private HashMap<String, Collegamento>  mappaCollegamenti ;
             //controllo se esiste
             
             // ottengo il collegamento dalla mappa e invio il resto...
-            if ( mappaCollegamenti.containsKey(nickName) ) {
-                mappaCollegamenti.get( nickName ).invia(
+            if ( collegamento.chatServer.mappaCollegamenti.containsKey(nickName) ) {
+                collegamento.chatServer.mappaCollegamenti.get( nickName ).invia(
                   "from "+nickName+ " to you : " + restoStringa );
             }
-
-        }
-
     }
-
-
-}
-
-class Collegamento extends Thread {
- 
-  private ChatServer chatServer;
-  private Socket socket ;
-  private String fromIP ;
-  private int fromPort ;
-
-  private BufferedReader bufferIn ;
-  private PrintWriter printOut ;
-  private boolean sonoChiuso ;
-  private boolean isLoggato;
-  private String nickName;
-
-
-  Collegamento( ChatServer server , Socket s ){
-    this.isLoggato=false;
-    this.nickName="";
-    this.sonoChiuso = false;
-    this.chatServer = server;
-    this.socket = s;
-    this.fromIP = s.getInetAddress().toString();
-    this.fromPort = s.getPort();
-    try {
-      this.bufferIn = new BufferedReader (
-                         new InputStreamReader(
-                               socket.getInputStream()));
-      this.printOut = new PrintWriter(
-                               socket.getOutputStream());
-     } catch (IOException ex) {  };
-     System.out.println( "Connessione da " +fromIP + ":" +fromPort );
-
-  }
-
-  public void run(){
-
-    String  stringaDalClient;
-    try {
-
-      while ( (stringaDalClient = bufferIn.readLine()) != null ){
-        
-          System.out.println( fromIP + ":" +fromPort + " = " 
-                            + stringaDalClient );
-                            
-          chatServer.analizza(this , stringaDalClient);
-          if ( sonoChiuso ) break;
-      };
-
-
-    } catch (IOException ex) {  };
- }
-  void invia (String messaggio){
-
-      printOut.write(messaggio+"\n");
-      printOut.flush();
-
-  }
-  
-  void chiudo(){
-      try {  
-          socket.close();
-          System.out.println("chiusa connessione con "+fromIP + ":"
-                                +fromPort);
-          sonoChiuso = true;
-      } catch (IOException ex) {  };
-  }
-
-  void login ( String nickName ){
-    this.isLoggato = true;
-    this.nickName = nickName ;
-  }
-
-  boolean isLoggato() { return this.isLoggato;}
 }
